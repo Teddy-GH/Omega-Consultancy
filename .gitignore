@@ -1,0 +1,15 @@
+#  Ignore the entire data folder
+data/
+
+# # Ignore all CSV files (anywhere in the project)
+*.csv
+
+# Ignore Jupyter Notebook checkpoints
+**/.ipynb_checkpoints/
+
+#Ignore venv
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
