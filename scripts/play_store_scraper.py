@@ -43,11 +43,8 @@ def scrape_play_store_reviews():
     except Exception as e:
         logging.error(f"Error occurred: {e}")
 
-# Different scheduling options (uncomment the one you want to use):
+# Scheduling
 schedule.every().day.at("01:00").do(scrape_play_store_reviews)  # Daily at 1 AM
-# schedule.every(6).hours.do(scrape_play_store_reviews)           # Every 6 hours
-# schedule.every().monday.do(scrape_play_store_reviews)           # Every Monday
-# schedule.every().hour.do(scrape_play_store_reviews)             # Every hour
 
 while True:
     schedule.run_pending()

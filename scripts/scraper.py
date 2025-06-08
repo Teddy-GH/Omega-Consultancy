@@ -1,37 +1,32 @@
-# scripts/scraper.py
-
-import os
 import pandas as pd
-from google_play_scraper import Sort, reviews_all
+from google_play_scraper import reviews, Sort
+import os
+from pathlib import Path  # Better path handling for Windows
 
+def scrape_reviews(app_ids: list, app_names: list, review_count: int = 100) -> pd.DataFrame:
+    all_reviews = []
+    for app_id, app_name in zip(app_ids, app_names):
+        try:
+            result, _ = reviews(
+                app_id,
+                lang='en',
+                country='et',
+                sort=Sort.NEWEST,
+                count=review_count,
+                timeout=10  # Prevents hanging on Windows
+            )
+            for review in result:
+                review['app_name'] = app_name
+            all_reviews.extend(result)
+        except Exception as e:
+            print(f"Failed to scrape {app_name}: {str(e)}")
+            continue  # Skip failed apps
+    
+    return pd.DataFrame(all_reviews)
 
-def create_data_dir(path: str = "data"):
-    """Create data directory if not exists."""
-    os.makedirs(path, exist_ok=True)
-
-
-def fetch_reviews(app_id: str, bank: str, max_reviews: int = 400) -> list:
-    """Fetch reviews from Google Play Store using google-play-scraper."""
-    print(f"🔍 Scraping reviews for {bank}...")
-    reviews = reviews_all(
-        app_id,
-        sleep_milliseconds=0,
-        lang='en',
-        country='et',
-        sort=Sort.NEWEST
-    )
-
-    return [{
-        'review': r['content'],
-        'rating': r['score'],
-        'date': r['at'],
-        'bank': bank,
-        'source': 'Google Play'
-    } for r in reviews[:max_reviews]]
-
-
-def save_reviews_to_csv(reviews: list, filename: str = "data/raw_reviews.csv"):
-    """Save reviews as a CSV file."""
-    df = pd.DataFrame(reviews)
-    df.to_csv(filename, index=False)
-    print(f"✅ Raw reviews saved to {filename}")
+def save_raw_data(df: pd.DataFrame, output_dir: str = 'data/raw'):
+    """Windows-friendly path handling"""
+    output_path = Path(output_dir) / 'reviews_raw.csv'
+    output_path.parent.mkdir(parents=True, exist_ok=True)  # Create dirs if missing
+    df.to_csv(output_path, index=False, encoding='utf-8-sig')  # UTF-8 for Windows Excel
+    print(f"Data saved to {output_path}")
